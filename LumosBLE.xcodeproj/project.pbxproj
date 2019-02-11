@@ -8,12 +8,20 @@
 
 /* Begin PBXBuildFile section */
 		6D39F4BD22116AEA001F1945 /* LumosBLE.h in Headers */ = {isa = PBXBuildFile; fileRef = 6D39F4BB22116AEA001F1945 /* LumosBLE.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		6D39F4EC22117145001F1945 /* PeriObj.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D39F4E822117144001F1945 /* PeriObj.swift */; };
+		6D39F4ED22117145001F1945 /* AvailObj.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D39F4E922117145001F1945 /* AvailObj.swift */; };
+		6D39F4EE22117145001F1945 /* CentralManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D39F4EA22117145001F1945 /* CentralManager.swift */; };
+		6D39F4EF22117145001F1945 /* GattController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D39F4EB22117145001F1945 /* GattController.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		6D39F4B822116AEA001F1945 /* LumosBLE.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = LumosBLE.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		6D39F4BB22116AEA001F1945 /* LumosBLE.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LumosBLE.h; sourceTree = "<group>"; };
 		6D39F4BC22116AEA001F1945 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		6D39F4E822117144001F1945 /* PeriObj.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PeriObj.swift; sourceTree = "<group>"; };
+		6D39F4E922117145001F1945 /* AvailObj.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AvailObj.swift; sourceTree = "<group>"; };
+		6D39F4EA22117145001F1945 /* CentralManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CentralManager.swift; sourceTree = "<group>"; };
+		6D39F4EB22117145001F1945 /* GattController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GattController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -46,6 +54,10 @@
 		6D39F4BA22116AEA001F1945 /* LumosBLE */ = {
 			isa = PBXGroup;
 			children = (
+				6D39F4E922117145001F1945 /* AvailObj.swift */,
+				6D39F4EA22117145001F1945 /* CentralManager.swift */,
+				6D39F4EB22117145001F1945 /* GattController.swift */,
+				6D39F4E822117144001F1945 /* PeriObj.swift */,
 				6D39F4BB22116AEA001F1945 /* LumosBLE.h */,
 				6D39F4BC22116AEA001F1945 /* Info.plist */,
 			);
@@ -95,6 +107,7 @@
 				TargetAttributes = {
 					6D39F4B722116AEA001F1945 = {
 						CreatedOnToolsVersion = 10.1;
+						LastSwiftMigration = 1010;
 					};
 				};
 			};
@@ -130,6 +143,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				6D39F4EC22117145001F1945 /* PeriObj.swift in Sources */,
+				6D39F4ED22117145001F1945 /* AvailObj.swift in Sources */,
+				6D39F4EE22117145001F1945 /* CentralManager.swift in Sources */,
+				6D39F4EF22117145001F1945 /* GattController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -261,6 +278,7 @@
 		6D39F4C122116AEA001F1945 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_IDENTITY = "";
 				CODE_SIGN_STYLE = Automatic;
 				DEFINES_MODULE = YES;
@@ -278,6 +296,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = de.fishare.LumosBLE;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				SKIP_INSTALL = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 4.2;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -286,6 +305,7 @@
 		6D39F4C222116AEA001F1945 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_IDENTITY = "";
 				CODE_SIGN_STYLE = Automatic;
 				DEFINES_MODULE = YES;
