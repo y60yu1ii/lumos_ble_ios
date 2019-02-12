@@ -83,14 +83,14 @@ extension CentralManager : CBCentralManagerDelegate{
     private func centralManager(_ central: CBCentralManager, didConnect peripheral: CBPeripheral) {
         print("[CONNECTED] \(peripheral.name ?? "") is connected")
         let uuid = peripheral.identifier.uuidString
-        let peri = peris.first{ $0.uuid == uuid }
-        if(peri != nil){
-            print("[CONNECTED] \(peri!.name) with \(peri!.mac) and UUID \(peri!.uuid)")
+        let periObj = peris.first{ $0.uuid == uuid }
+        if(periObj != nil){
+            print("[CONNECTED] \(periObj!.name) with \(periObj!.mac) and UUID \(periObj!.uuid)")
             DispatchQueue.main.async {
-                peri!.connect(peri: peripheral)
+                periObj!.connect(peri: peripheral)
             }
             NotificationCenter.default.post(name: Notification.Name(CONNECTION),
-                    object: nil, userInfo: ["mac" : peri!.mac, "connected": true])
+                    object: nil, userInfo: ["mac" : periObj!.mac, "connected": true])
         }
     }
 
@@ -104,7 +104,7 @@ extension CentralManager : CBCentralManagerDelegate{
                 periMap.removeValue(forKey: periObj!.mac)
             }
             NotificationCenter.default.post(name: Notification.Name(CONNECTION),
-                    object: nil, userInfo: ["mac" : peri!.mac, "connected": false])
+                    object: nil, userInfo: ["mac" : periObj!.mac, "connected": false])
         }
     }
 
@@ -117,7 +117,7 @@ extension CentralManager : CBCentralManagerDelegate{
                 periMap.removeValue(forKey: periObj!.mac)
             }
             NotificationCenter.default.post(name: Notification.Name(CONNECTION),
-                    object: nil, userInfo: ["mac" : peri!.mac, "connected": false])
+                    object: nil, userInfo: ["mac" : periObj!.mac, "connected": false])
         }
    }
 
