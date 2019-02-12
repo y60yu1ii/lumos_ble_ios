@@ -43,7 +43,7 @@ public class PeriObj :NSObject{
 
     }
 
-    open func connect(peri:CBPeripheral){
+    func connect(peri:CBPeripheral){
         connectingLock = true
         self.cbPeripheral = peri
         name = cbPeripheral?.name ?? name

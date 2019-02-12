@@ -54,10 +54,8 @@ public class CentralManager: NSObject{
       
     }
 
-    func postBroadcast(_ tag:String){
-        NotificationCenter.default.post(name: Notification.Name(tag), object: nil, userInfo: nil)
+    func postBroadcast(_ label:String){
     }
-    
 
 }
 
@@ -81,6 +79,48 @@ extension CentralManager : CBCentralManagerDelegate{
         }
     }
 
+    //did connect callback
+    private func centralManager(_ central: CBCentralManager, didConnect peripheral: CBPeripheral) {
+        print("[CONNECTED] \(peripheral.name ?? "") is connected")
+        let uuid = peripheral.identifier.uuidString
+        let peri = peris.first{ $0.uuid == uuid }
+        if(peri != nil){
+            print("[CONNECTED] \(peri!.name) with \(peri!.mac) and UUID \(peri!.uuid)")
+            DispatchQueue.main.async {
+                peri!.connect(peri: peripheral)
+            }
+            NotificationCenter.default.post(name: Notification.Name(CONNECTION),
+                    object: nil, userInfo: ["mac" : peri!.mac, "connected": true])
+        }
+    }
+
+    //did disconnect callback
+    private func centralManager(_ central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: Error?) {
+        print("[DISCONNECTED] \(peripheral.name ?? "") is dropped uuid is \( peripheral.identifier.uuidString )")
+        let uuid = peripheral.identifier.uuidString
+        let periObj = peris.first{ $0.uuid == uuid }
+        if(periObj != nil) {
+            if (periObj!.markDelete == true || periObj!.isAuthSuccess != true) {
+                periMap.removeValue(forKey: periObj!.mac)
+            }
+            NotificationCenter.default.post(name: Notification.Name(CONNECTION),
+                    object: nil, userInfo: ["mac" : peri!.mac, "connected": false])
+        }
+    }
+
+    private func centralManager(_ central: CBCentralManager, didFailToConnect peripheral: CBPeripheral, error: Error?) {
+        print("[FAIL DISCONNECTED] \(peripheral.name ?? "") is dropped uuid is \( peripheral.identifier.uuidString )")
+        let uuid = peripheral.identifier.uuidString
+        let periObj = peris.first{ $0.uuid == uuid }
+        if(periObj != nil) {
+            if (periObj!.markDelete == true || periObj!.isAuthSuccess != true) {
+                periMap.removeValue(forKey: periObj!.mac)
+            }
+            NotificationCenter.default.post(name: Notification.Name(CONNECTION),
+                    object: nil, userInfo: ["mac" : peri!.mac, "connected": false])
+        }
+   }
+
     func isValidName(name:String?) -> Bool{
         guard let n = name else{ return false }
 //        "(Joey|BUDDY)-[a-zA-Z0-9]{3,7}"
@@ -102,10 +142,10 @@ extension CentralManager : CBCentralManagerDelegate{
             }
             avl.delegate = nil
             avails.removeAll { $0.mac == avl.mac }
-
+            addToHistory(avl.mac)
+            saveProfile(avl.mac, "name", avl.name)
         }
     }
-
 
     
     public func centralManagerDidUpdateState(_ central: CBCentralManager) {

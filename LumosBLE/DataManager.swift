@@ -33,3 +33,30 @@ func delFromHistory(_ key:String){
         ud.synchronize()
     }
 }
+
+func loadProfile(_ key:String, _ para:String) -> String{
+
+}
+
+func saveProfile(_ key:String, _ para:String, _ value:Any){
+    var profile = getProfileDict(key)
+    profile[key] = value
+    ud.set(profile, forKey: key)
+    ud.synchronize()
+}
+
+func getProfileDict(_ key:String) -> [String:Any]{
+    if let profile = ud.dictionary(forKey: key) {
+        return profile
+    } else {
+        let prf: [String:Any] = [
+            "name": "name",
+            "mac" :"mac",
+            "uuid" :"uuid",
+        ]
+        ud.set(prf, forKey: key)
+        ud.synchronize()
+        return prf
+    }
+}
+

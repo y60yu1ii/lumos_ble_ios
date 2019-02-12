@@ -4,6 +4,8 @@
 //
 
 import Foundation
+let REFRESH_ALL = "de.fishare.refresh"
+let CONNECTION  = "de.fishare.connection"
 
 //self definition for LeVise product
 func getMac(_ bytes:Data) -> String? {
