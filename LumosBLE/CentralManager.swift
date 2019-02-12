@@ -6,16 +6,6 @@
 import Foundation
 import CoreBluetooth
 
-#if swift(>=4.2)
-let didBecomeActiveNotificationName = UIApplication.didBecomeActiveNotification
-let willResignActiveNotificationName = UIApplication.willResignActiveNotification
-let didEnterBackgroundNotificationName = UIApplication.didEnterBackgroundNotification
-#else
-let didBecomeActiveNotificationName = UIApplication.didBecomeActiveNotification
-let willResignActiveNotificationName = UIApplication.willResignActiveNotification
-let didEnterBackgroundNotificationName = UIApplication.didEnterBackgroundNotification
-#endif
-
 protocol EventListener {
     func didDiscover(_ availObj:AvailObj)
 }
@@ -42,38 +32,27 @@ public class CentralManager: NSObject{
         super.init()
         centralMgr = CBCentralManager(delegate: self,
                                       queue: DispatchQueue.global(), options: [CBCentralManagerOptionShowPowerAlertKey:false])
+    }
+
+    @objc public func startAPP(){
+        //prevent from doing nothing when initiated
         print("Open central manager \u{24}")
     }
-    
+
     deinit {
         NotificationCenter.default.removeObserver(self)
-    }
-    
-    @objc func appWillResign(){
-    }
-    
-    @objc func appDidBecomeActive(){}
-    @objc func appEnterBackground(){
-        print("Entering background ------------------------------------------------------------------- ")
-    
     }
     
     private func loadHistory(){
         //        getHistory().forEach{ if($0 != ""){ deviceMap[$0] = JoeyDevice($0) }}
       
     }
-    
-    @objc func handleRefreshAll(notification: Notification){}
-    
+
     func postBroadcast(_ tag:String){
         NotificationCenter.default.post(name: Notification.Name(tag), object: nil, userInfo: nil)
     }
     
-    @objc func startAPP(){
-        //prevent from doing nothing when initiated
-      
-    }
-    
+
 }
 
 extension CentralManager : CBCentralManagerDelegate{
