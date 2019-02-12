@@ -10,7 +10,7 @@ public class PeriObj :NSObject{
     var name:String = "name"
     var mac:String  = "mac"
     var uuid:String = "uuid"
-    var connectingLock = false
+    public var connectingLock = false
     var isConnected = false
     var markDelete = false
     var controller: GattController? = nil
@@ -33,6 +33,14 @@ public class PeriObj :NSObject{
     deinit {
         delegate = nil
         controller = nil
+    }
+
+    func setAvl(_ avl:AvailObj){
+        self.rssi = avl.rssi
+        self.mac = avl.mac
+        self.uuid = avl.uuid
+        self.name = avl.name
+
     }
 
     open func connect(peri:CBPeripheral){

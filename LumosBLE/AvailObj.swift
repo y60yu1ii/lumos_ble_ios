@@ -23,7 +23,7 @@ public class AvailObj :NSObject{
     }
 
     var delegate:AvailObjDelegate? = nil
-    init(peri: CBPeripheral){
+    init(_ peri: CBPeripheral){
         cbPeripheral = peri
         uuid = peri.identifier.uuidString
         name = peri.name ?? "name"
