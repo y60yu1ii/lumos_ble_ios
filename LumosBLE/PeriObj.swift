@@ -72,6 +72,7 @@ open class PeriObj :NSObject{
 extension PeriObj :ControllerDelegate{
     func didDiscoverServices() {
         print("didDiscover services ")
+        print("\(controller?.charaDict.keys) ")
         setUp()
     }
 

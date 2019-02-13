@@ -50,11 +50,14 @@ class GattController:NSObject, CBPeripheralDelegate{
 
     func peripheral(_ peripheral: CBPeripheral, didDiscoverServices error: Error?) {
         peripheral.services?.forEach{ peripheral.discoverCharacteristics(nil, for: $0) }
-        delegate?.didDiscoverServices()
     }
 
     func peripheral(_ peripheral: CBPeripheral, didDiscoverCharacteristicsFor service: CBService, error: Error?) {
         service.characteristics?.forEach{ charaDict[$0.uuid.uuidString] = $0 }
+        let len = peripheral.services?.count ?? 0
+        if(charaDict.keys.count >= len ){
+            delegate?.didDiscoverServices()
+        }
     }
 
     func peripheral(_ peripheral: CBPeripheral, didReadRSSI RSSI: NSNumber, error: Error?) {
