@@ -5,10 +5,10 @@
 import Foundation
 import CoreBluetooth
 
-public class PeriObj :NSObject{
+open class PeriObj :NSObject{
     var cbPeripheral:CBPeripheral? = nil
+    var key:String  = "key"
     var name:String = "name"
-    var mac:String  = "mac"
     var uuid:String = "uuid"
     public var connectingLock = false
     var isConnected = false
@@ -26,8 +26,8 @@ public class PeriObj :NSObject{
         }
     }
 
-    init(_ mac :String){
-        self.mac = mac
+    public init(_ uuid :String){
+        self.uuid = uuid
     }
 
     deinit {
@@ -37,10 +37,8 @@ public class PeriObj :NSObject{
 
     func setAvl(_ avl:AvailObj){
         self.rssi = avl.rssi
-        self.mac = avl.mac
         self.uuid = avl.uuid
         self.name = avl.name
-
     }
 
     func connect(peri:CBPeripheral){

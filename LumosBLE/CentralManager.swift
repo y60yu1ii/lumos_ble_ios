@@ -6,14 +6,19 @@
 import Foundation
 import CoreBluetooth
 
-protocol EventListener {
+public protocol EventListener {
     func didDiscover(_ availObj:AvailObj)
 }
 
-protocol Setting{
+public protocol Setting{
     func getNameRule() -> String
     func getCustomObj(_ key:String, _ name:String) -> PeriObj
     func getCustomAvl(_ peri:CBPeripheral) -> AvailObj
+}
+public extension Setting{
+    func getNameRule() -> String{ return ".*?" }
+    func getCustomObj(_ key:String, _ name:String) -> PeriObj { return PeriObj(key) }
+    func getCustomAvl(_ peri:CBPeripheral) -> AvailObj { return AvailObj(peri) }
 }
 
 public class CentralManager: NSObject{
@@ -26,13 +31,13 @@ public class CentralManager: NSObject{
     let REGX_ALL = ".*?"
 
     public var serviceUUIDs = [String]()
+    public var setting : Setting? = nil
+    public var event : EventListener? = nil
     var avails = [AvailObj]()
     var periMap = [String:PeriObj]()
     var peris : [PeriObj] { get{ return periMap.map{$0.1} } }
 
     var centralMgr: CBCentralManager!
-    var setting : Setting? = nil
-    var event : EventListener? = nil
 
     private override init(){
         super.init()
@@ -52,22 +57,22 @@ extension CentralManager{
         print("Open central manager \u{24}")
     }
 
-    @objc public func connect(_ mac:String){
-        let avl = avails.first{ $0.mac == mac }
+    @objc public func connect(_ key:String){
+        let avl = avails.first{ $0.key == key }
         if(avl != nil){ connect(avl!) }
     }
 
-    @objc public func disconnect(_ mac:String){
-        let peri = periMap[mac]
-        if(peri != nil){
-           disconnect(peri!, isRemove: false)
+    @objc public func disconnect(_ key:String){
+        let periObj = peris.first{ $0.key == key }
+        if(periObj != nil){
+           disconnect(periObj!, isRemove: false)
         }
     }
 
-    @objc public func remove(_ mac:String){
-        let peri = periMap[mac]
-        if(peri != nil){
-            disconnect(peri!, isRemove: true)
+    @objc public func remove(_ key:String){
+        let periObj = peris.first{ $0.key == key }
+        if(periObj != nil){
+            disconnect(periObj!, isRemove: true)
         }
     }
 
@@ -85,27 +90,28 @@ extension CentralManager : CBCentralManagerDelegate{
      *
      **/
     public func centralManager(_ central: CBCentralManager, didDiscover peripheral: CBPeripheral, advertisementData: [String: Any], rssi RSSI: NSNumber) {
-        print("Scan name is \(peripheral.name ?? "")")
+//        print("Scan name is \(peripheral.name ?? "")")
         if !isValidName(name: peripheral.name) { return }
         let rssi = RSSI.intValue
         guard rssi != 127 else { return }
         let data = advertisementData["kCBAdvDataManufacturerData"] as? Data ?? Data()
-        let key = getMac(data) ?? peripheral.identifier.uuidString
-        let peri = periMap[key]
+        let uuid = peripheral.identifier.uuidString
+        let peri = periMap[uuid]
         if(peri != nil && !(peri?.markDelete == true)){
             connect(makeAvail(peripheral, rawData: data))
             return
         }
 
-        let avl = avails.first{ $0.mac == key }
+        let avl = avails.first{ $0.uuid == uuid }
         if(avl != nil){
+//            print("[UPDATE] avail count is \(avails.count) key is \(avl!.key) name is \(avl!.name)")
             avl!.rssi = rssi
             avl!.rawData = data
         }else if(rssi > CONNECT_FILTER){
             let a = makeAvail(peripheral, rawData: data)
             avails.append(a)
             event?.didDiscover(a)
-            print("[ADD to AVAIL] count is \(avails.count) mac is \(a.mac)")
+            print("[ADD to AVAIL] count is \(avails.count) uuid is \(a.uuid) name is \(a.name)")
         }
     }
 
@@ -116,11 +122,10 @@ extension CentralManager : CBCentralManagerDelegate{
     }
 
     func makeAvail(_ peri:CBPeripheral, rawData:Data) -> AvailObj{
-        let key = getMac(rawData) ?? peri.identifier.uuidString
         let avl:AvailObj = setting?.getCustomAvl(peri) ?? AvailObj(peri)
         avl.rawData = rawData
-        avl.mac = key
         avl.uuid = peri.identifier.uuidString
+        avl.setUp()
         return avl
     }
 
@@ -130,56 +135,49 @@ extension CentralManager : CBCentralManagerDelegate{
         let uuid = peripheral.identifier.uuidString
         let periObj = peris.first{ $0.uuid == uuid }
         if(periObj != nil){
-            print("[CONNECTED] \(periObj!.name) with \(periObj!.mac) and UUID \(periObj!.uuid)")
+            print("[CONNECTED] \(periObj!.name) with \(periObj!.uuid) key is \(periObj!.key)")
             DispatchQueue.main.async {
                 periObj!.connect(peri: peripheral)
             }
             NotificationCenter.default.post(name: Notification.Name(CONNECTION),
-                    object: nil, userInfo: ["mac" : periObj!.mac, "connected": true])
+                    object: nil, userInfo: ["key" : periObj!.key, "connected": true])
         }
     }
 
     //did disconnect callback
     public func centralManager(_ central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: Error?) {
         print("[DISCONNECTED] \(peripheral.name ?? "") is dropped uuid is \( peripheral.identifier.uuidString )")
-        let uuid = peripheral.identifier.uuidString
-        let periObj = peris.first{ $0.uuid == uuid }
-        if(periObj != nil) {
-            periObj?.cbPeripheral?.delegate = nil
-            if (periObj!.markDelete == true || periObj!.isAuthSuccess != true) {
-                periMap.removeValue(forKey: periObj!.mac)
-            }
-            NotificationCenter.default.post(name: Notification.Name(CONNECTION),
-                    object: nil, userInfo: ["mac" : periObj!.mac, "connected": false])
-        }
+        let periObj = peris.first{ $0.uuid == peripheral.identifier.uuidString }
+        if(periObj != nil){ didDisconnect(periObj!) }
     }
 
     public func centralManager(_ central: CBCentralManager, didFailToConnect peripheral: CBPeripheral, error: Error?) {
         print("[FAIL DISCONNECTED] \(peripheral.name ?? "") is dropped uuid is \( peripheral.identifier.uuidString )")
-        let uuid = peripheral.identifier.uuidString
-        let periObj = peris.first{ $0.uuid == uuid }
-        if(periObj != nil) {
-            periObj?.cbPeripheral?.delegate = nil
-            if (periObj!.markDelete == true || periObj!.isAuthSuccess != true) {
-                periMap.removeValue(forKey: periObj!.mac)
-            }
-            NotificationCenter.default.post(name: Notification.Name(CONNECTION),
-                    object: nil, userInfo: ["mac" : periObj!.mac, "connected": false])
-        }
+        let periObj = peris.first{ $0.uuid == peripheral.identifier.uuidString }
+        if(periObj != nil){ didDisconnect(periObj!) }
    }
+
+    private func didDisconnect(_ periObj:PeriObj){
+        periObj.cbPeripheral?.delegate = nil
+        if (periObj.markDelete == true || periObj.isAuthSuccess != true) {
+            periMap.removeValue(forKey: periObj.uuid)
+        }
+        NotificationCenter.default.post(name: Notification.Name(CONNECTION),
+                    object: nil, userInfo: ["key" : periObj.key, "connected": false])
+    }
 
     private func connect(_ avl:AvailObj){
         print("[CentralManager] Connecting")
-        let periObj:PeriObj = periMap[avl.mac] ?? setting?.getCustomObj(avl.mac, avl.name) ?? PeriObj(avl.mac)
+        let periObj:PeriObj = periMap[avl.uuid] ?? setting?.getCustomObj(avl.uuid, avl.name) ?? PeriObj(avl.uuid)
         if(!periObj.connectingLock ){
             periObj.setAvl(avl)
             DispatchQueue.main.async{
                 self.centralMgr.connect(avl.cbPeripheral, options: [CBConnectPeripheralOptionNotifyOnConnectionKey: true])
             }
             avl.delegate = nil
-            avails.removeAll { $0.mac == avl.mac }
-            addToHistory(avl.mac)
-            saveProfile(avl.mac, "name", avl.name)
+            avails.removeAll { $0.uuid == avl.uuid }
+            addToHistory(avl.uuid)
+            saveProfile(avl.uuid, "name", avl.name)
         }
     }
 
@@ -189,7 +187,7 @@ extension CentralManager : CBCentralManagerDelegate{
         periObj.disconnect(){ completed in
             if(completed && periObj.cbPeripheral != nil){ self.centralMgr.cancelPeripheralConnection(periObj.cbPeripheral!)}
         }
-        if(isRemove){ removeFromHistory(periObj.mac) }
+        if(isRemove){ removeFromHistory(periObj.uuid) }
     }
 
     private func doScan(){

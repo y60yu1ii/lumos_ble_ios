@@ -5,13 +5,13 @@
 import Foundation
 import CoreBluetooth
 
-public class AvailObj :NSObject{
-    var cbPeripheral:CBPeripheral
-    var name:String = "name"
-    var mac:String  = "mac"
-    var uuid:String
-    var lastUpdateTime:Int = 0
-    var rawData:Data = Data(){ didSet{ onRawUpdate(rawData) }}
+open class AvailObj :NSObject{
+    public var cbPeripheral:CBPeripheral
+    public var key:String  = "key"
+    public var name:String = "name"
+    public var uuid:String
+    public var lastUpdateTime:Int = 0
+    public var rawData:Data = Data(){ didSet{ onRawUpdate(rawData) }}
     open func onRawUpdate(_ data: Data){}
     var rssi:Int = 0{
         didSet{
@@ -23,7 +23,7 @@ public class AvailObj :NSObject{
     }
 
     var delegate:AvailObjDelegate? = nil
-    init(_ peri: CBPeripheral){
+    public init(_ peri: CBPeripheral){
         cbPeripheral = peri
         uuid = peri.identifier.uuidString
         name = peri.name ?? "name"
@@ -31,6 +31,8 @@ public class AvailObj :NSObject{
     deinit {
         delegate = nil
     }
+
+    open func setUp(){}
 
 }
 
