@@ -51,7 +51,7 @@ extension CentralManager{
     @objc public func startAPP(){
         //prevent from doing nothing when initiated
         print("Open central manager \u{24}")
-        doScan()
+        centralMgr.delegate = self
     }
 
     @objc public func connect(_ mac:String){
