@@ -6,6 +6,7 @@
 import Foundation
 let REFRESH_ALL = "de.fishare.refresh"
 let CONNECTION  = "de.fishare.connection"
+let BLUETOOTH_STATE = "de.fishare.bluetooth.state"
 
 //self definition for LeVise product
 func getMac(_ bytes:Data) -> String? {

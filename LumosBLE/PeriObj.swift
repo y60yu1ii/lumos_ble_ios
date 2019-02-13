@@ -57,6 +57,7 @@ public class PeriObj :NSObject{
         controller?.cbPeripheral.readRSSI()
     }
 
+    open func disconnect(completion:@escaping (_:Bool)->()){}
     open func getUpdated(_ uuidStr: String, _ value: Data, _ kind: UpdateKind) {}
     open func writeWithResponse(_ uuidStr:String, data:Data){
         controller?.writeTo(uuidStr, data: data, resp: true)

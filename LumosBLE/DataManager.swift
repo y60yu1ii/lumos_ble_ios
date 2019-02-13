@@ -5,6 +5,7 @@
 
 import Foundation
 let ud = UserDefaults.standard
+let NULL = "string.null"
 
 func getHistory() -> Array<String> {
     return ud.array(forKey: "history") as? Array<String> ?? []
@@ -26,7 +27,7 @@ func addToHistory(_ key:String){
     }
 }
 
-func delFromHistory(_ key:String){
+func removeFromHistory(_ key:String){
     if var ls =  ud.array(forKey: "history") as? [String]{
         ls = ls.filter{$0 != key}
         ud.set(ls, forKey: "history")
@@ -35,7 +36,13 @@ func delFromHistory(_ key:String){
 }
 
 func loadProfile(_ key:String, _ para:String) -> String{
+    let profile = getProfileDict(key)
+    return profile[key] as? String ?? NULL
+}
 
+func loadProfile(_ key:String, _ para:String) -> Int{
+    let profile = getProfileDict(key)
+    return profile[key] as? Int ?? 0
 }
 
 func saveProfile(_ key:String, _ para:String, _ value:Any){
