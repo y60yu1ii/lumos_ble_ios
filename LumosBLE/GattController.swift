@@ -71,6 +71,7 @@ class GattController:NSObject, CBPeripheralDelegate{
     func peripheral(_ peripheral: CBPeripheral, didWriteValueFor characteristic: CBCharacteristic, error: Error?){
         let uuidStr = characteristic.uuid.uuidString
         let value   = characteristic.value ?? Data()
+        print("[DidWrite] \(uuidStr) with \(value.toHex4Human())")
         delegate?.onUpdated(uuidStr, value: value, kind: .write)
     }
 

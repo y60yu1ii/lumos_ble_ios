@@ -21,3 +21,26 @@ func matches(for regex: String, in text: String) -> [String] {
         return []
     }
 }
+
+extension Data {
+    func subdata(in range: ClosedRange<Index>) -> Data {
+        return subdata(in: range.lowerBound ..< range.upperBound )
+    }
+
+    func toHex4Human() -> String {
+        return map { String(format: "%02hhx ", $0) }.joined()
+    }
+
+    func toHexEncodedString() -> String {
+        return map { String(format: "%02hhx", $0) }.joined()
+    }
+
+    func toJson() -> [String:Any]?{
+        do {
+            return try JSONSerialization.jsonObject(with: self, options: []) as? [String: Any]
+        } catch {
+            print(error.localizedDescription)
+        }
+        return nil
+    }
+}

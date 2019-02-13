@@ -6,19 +6,18 @@ import Foundation
 import CoreBluetooth
 
 open class PeriObj :NSObject{
-    var cbPeripheral:CBPeripheral? = nil
-    var key:String  = "key"
-    var name:String = "name"
-    var uuid:String = "uuid"
+    public var cbPeripheral:CBPeripheral? = nil
+    public var key:String  = "key"
+    public var name:String = "name"
+    public var uuid:String = "uuid"
     public var connectingLock = false
-    var isConnected = false
-    var markDelete = false
-    var controller: GattController? = nil
-    var delegate: PeriObjDelegate? = nil
-    var isAuthSuccess : Bool = false{ didSet { dealWithAuthState(isAuthSuccess) } }
+    public var isConnected = false
+    public var markDelete = false
+    public var delegate: PeriObjDelegate? = nil
+    public var isAuthSuccess : Bool = false{ didSet { dealWithAuthState(isAuthSuccess) } }
     open func dealWithAuthState(_ isSuccess:Bool){}
-
-    var rssi:Int = 0{
+    var controller: GattController? = nil
+    public var rssi:Int = 0{
         didSet{
             if(rssi<0){
                 delegate?.onRSSIChanged(rssi: rssi, periObj: self)
@@ -36,6 +35,8 @@ open class PeriObj :NSObject{
     }
 
     func setAvl(_ avl:AvailObj){
+        self.cbPeripheral = avl.cbPeripheral
+        self.key  = avl.key
         self.rssi = avl.rssi
         self.uuid = avl.uuid
         self.name = avl.name
@@ -47,7 +48,9 @@ open class PeriObj :NSObject{
         name = cbPeripheral?.name ?? name
         controller = GattController(peri)
         controller?.delegate = self
-        controller?.startDiscoverServices()
+        DispatchQueue.main.async{
+            self.controller?.startDiscoverServices()
+        }
     }
 
     open func setUp(){
@@ -57,17 +60,19 @@ open class PeriObj :NSObject{
 
     open func disconnect(completion:@escaping (_:Bool)->()){}
     open func getUpdated(_ uuidStr: String, _ value: Data, _ kind: UpdateKind) {}
-    open func writeWithResponse(_ uuidStr:String, data:Data){
+
+    public func writeTo(_ uuidStr:String, data:Data){
         controller?.writeTo(uuidStr, data: data, resp: true)
     }
-    open func writeTo(_ uuidStr:String, data:Data){
+    public func writeToNoResp(_ uuidStr:String, data:Data){
         controller?.writeTo(uuidStr, data: data, resp: false)
     }
 }
 
 extension PeriObj :ControllerDelegate{
     func didDiscoverServices() {
-       setUp()
+        print("didDiscover services ")
+        setUp()
     }
 
     func onRSSIUpdated(rssi: Int) {
@@ -80,7 +85,7 @@ extension PeriObj :ControllerDelegate{
     }
 }
 
-protocol PeriObjDelegate{
+public protocol PeriObjDelegate{
     func onRSSIChanged(rssi: Int, periObj:PeriObj)
     func onUpdated(label: String, value:Any, periObj:PeriObj)
 }

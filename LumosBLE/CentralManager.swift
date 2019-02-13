@@ -111,7 +111,7 @@ extension CentralManager : CBCentralManagerDelegate{
             let a = makeAvail(peripheral, rawData: data)
             avails.append(a)
             event?.didDiscover(a)
-            print("[ADD to AVAIL] count is \(avails.count) uuid is \(a.uuid) name is \(a.name)")
+            print("[ADD to AVAIL] \(a.name) key is \(a.key) count is \(avails.count) ")
         }
     }
 
@@ -167,12 +167,15 @@ extension CentralManager : CBCentralManagerDelegate{
     }
 
     private func connect(_ avl:AvailObj){
-        print("[CentralManager] Connecting")
-        let periObj:PeriObj = periMap[avl.uuid] ?? setting?.getCustomObj(avl.uuid, avl.name) ?? PeriObj(avl.uuid)
+        let periObj:PeriObj = periMap[avl.key] ?? setting?.getCustomObj(avl.key, avl.name) ?? PeriObj(avl.key)
         if(!periObj.connectingLock ){
             periObj.setAvl(avl)
+            periMap[periObj.key] = periObj
             DispatchQueue.main.async{
-                self.centralMgr.connect(avl.cbPeripheral, options: [CBConnectPeripheralOptionNotifyOnConnectionKey: true])
+                if(periObj.cbPeripheral != nil){
+                    print("[CentralManager] Connecting to \(periObj.cbPeripheral?.name)")
+                    self.centralMgr.connect(periObj.cbPeripheral!, options: [CBConnectPeripheralOptionNotifyOnConnectionKey: true])
+                }
             }
             avl.delegate = nil
             avails.removeAll { $0.uuid == avl.uuid }
