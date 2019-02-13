@@ -2,7 +2,7 @@ Pod::Spec.new do |s|
           #1.
           s.name               = "LumosBLE"
           #2.
-          s.version            = "0.0.2"
+          s.version            = "0.0.3"
           #3.  
           s.summary         = "Simplest ble module"
           #4.
@@ -14,7 +14,7 @@ Pod::Spec.new do |s|
           #7.
           s.platform            = :ios, "10.0"
           #8.
-          s.source              = { :git => "URL", :tag => "0.0.2" }
+          s.source              = { :git => "URL", :tag => "0.0.3" }
           #9.
           s.source_files     = "LumosBLE", "LumosBLE/**/*.{h,m,swift}"
     end

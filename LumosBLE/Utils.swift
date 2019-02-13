@@ -8,8 +8,6 @@ let REFRESH_ALL = "de.fishare.refresh"
 let CONNECTION  = "de.fishare.connection"
 let BLUETOOTH_STATE = "de.fishare.bluetooth.state"
 
-
-
 func matches(for regex: String, in text: String) -> [String] {
     do {
         let regex = try NSRegularExpression(pattern: regex)
