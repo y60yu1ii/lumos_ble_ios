@@ -25,6 +25,7 @@ public class CentralManager: NSObject{
     let CONNECT_FILTER:Int = -75
     let REGX_ALL = ".*?"
 
+    public var serviceUUIDs = [String]()
     var avails = [AvailObj]()
     var periMap = [String:PeriObj]()
     var peris : [PeriObj] { get{ return periMap.map{$0.1} } }
@@ -36,7 +37,7 @@ public class CentralManager: NSObject{
     private override init(){
         super.init()
         centralMgr = CBCentralManager(delegate: self,
-                                      queue: DispatchQueue.global(), options: [CBCentralManagerOptionShowPowerAlertKey:false])
+        queue: DispatchQueue.global(), options: [CBCentralManagerOptionShowPowerAlertKey:false])
     }
 
     deinit {
@@ -50,6 +51,7 @@ extension CentralManager{
     @objc public func startAPP(){
         //prevent from doing nothing when initiated
         print("Open central manager \u{24}")
+        doScan()
     }
 
     @objc public func connect(_ mac:String){
@@ -86,6 +88,7 @@ extension CentralManager : CBCentralManagerDelegate{
      **/
     private func centralManager(_ central: CBCentralManager, didDiscover peripheral: CBPeripheral,
                         advertisementData: [String: Any], rssi RSSI: NSNumber) {
+        print("Scan name is \(peripheral.name ?? "")")
         if !isValidName(name: peripheral.name) { return }
         let rssi = RSSI.intValue
         guard rssi != 127 else { return }
@@ -187,9 +190,22 @@ extension CentralManager : CBCentralManagerDelegate{
         print("Disconnecting")
         periObj.markDelete = isRemove
         periObj.disconnect(){ completed in
-            if(completed){ centralMgr.cancelPeripheralConnection(periObj.cbPeripheral)}
+            if(completed && periObj.cbPeripheral != nil){ self.centralMgr.cancelPeripheralConnection(periObj.cbPeripheral!)}
         }
         if(isRemove){ removeFromHistory(periObj.mac) }
+    }
+
+    private func doScan(){
+        let services = serviceUUIDs.map{(uuid)-> CBUUID in return CBUUID.init(string: uuid)}
+        print("scan with \(services)")
+        self.centralMgr?.scanForPeripherals(withServices: services, options: [CBCentralManagerScanOptionAllowDuplicatesKey : true])
+    }
+
+    private func bluetoothIsOff(){
+        peris.forEach{
+            if($0.cbPeripheral != nil){ self.centralMgr.cancelPeripheralConnection($0.cbPeripheral!) }
+        }
+        avails.removeAll()
     }
 
     public func centralManagerDidUpdateState(_ central: CBCentralManager) {
@@ -199,10 +215,10 @@ extension CentralManager : CBCentralManagerDelegate{
                 print("This app is not authorised to use Bluetooth low energy")
             case CBManagerState.poweredOff:
                 print("Ble off")
-
+                bluetoothIsOff()
             case CBManagerState.poweredOn:
                 print("Ble on")
-
+                doScan()
             default:break
             }
         } else {
@@ -211,9 +227,10 @@ extension CentralManager : CBCentralManagerDelegate{
                 print("This app is not authorised to use Bluetooth low energy")
             case 4: // CBCentralManagerState.poweredOff:
                 print("Ble off")
-
+                bluetoothIsOff()
             case 5: //CBCentralManagerState.poweredOn:
                 print("Ble on")
+                doScan()
 
             default:break
             }
