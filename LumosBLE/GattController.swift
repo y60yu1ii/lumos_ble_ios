@@ -11,12 +11,6 @@ protocol ControllerDelegate {
     func onRSSIUpdated(rssi: Int)
     func onUpdated(_ uuidStr: String, value: Data, kind: UpdateKind)
 }
-//make it optional
-extension ControllerDelegate {
-    func didDiscoverServices(){}
-    func onRSSIUpdated(rssi: Int){}
-    func onUpdated(_ uuidStr: String, value: Data, kind: UpdateKind){}
-}
 
 
 class GattController:NSObject, CBPeripheralDelegate{
@@ -28,7 +22,9 @@ class GattController:NSObject, CBPeripheralDelegate{
 
     var queue:OperationQueue = OperationQueue()
     var debug = false
-    var battery:Float = 0.0
+
+    var len = 0
+    var now = 0
 
     var isConnected:Bool{
         get { return self.cbPeripheral.state == .connected }
@@ -50,14 +46,14 @@ class GattController:NSObject, CBPeripheralDelegate{
 
     func peripheral(_ peripheral: CBPeripheral, didDiscoverServices error: Error?) {
         peripheral.services?.forEach{ peripheral.discoverCharacteristics(nil, for: $0) }
+        len = peripheral.services?.count ?? len
     }
 
     func peripheral(_ peripheral: CBPeripheral, didDiscoverCharacteristicsFor service: CBService, error: Error?) {
         service.characteristics?.forEach{ charaDict[$0.uuid.uuidString] = $0 }
-        let len = peripheral.services?.count ?? 0
-        if(charaDict.keys.count >= len ){
-            delegate?.didDiscoverServices()
-        }
+        now += 1
+        print("\(now) / \(len) ")
+        if(now >= len ){ delegate?.didDiscoverServices() }
     }
 
     func peripheral(_ peripheral: CBPeripheral, didReadRSSI RSSI: NSNumber, error: Error?) {
@@ -74,7 +70,6 @@ class GattController:NSObject, CBPeripheralDelegate{
     func peripheral(_ peripheral: CBPeripheral, didWriteValueFor characteristic: CBCharacteristic, error: Error?){
         let uuidStr = characteristic.uuid.uuidString
         let value   = characteristic.value ?? Data()
-        print("[DidWrite] \(uuidStr) with \(value.toHex4Human())")
         delegate?.onUpdated(uuidStr, value: value, kind: .write)
     }
 

@@ -59,7 +59,9 @@ open class PeriObj :NSObject{
     }
 
     open func disconnect(completion:@escaping (_:Bool)->()){}
-    open func getUpdated(_ uuidStr: String, _ value: Data, _ kind: UpdateKind) {}
+    open func getUpdated(_ uuidStr: String, _ value: Data, _ kind: UpdateKind) {
+        print("[getUpdate] \(name) \(uuidStr) and value is \(value)")
+    }
 
     public func writeTo(_ uuidStr:String, data:Data){
         controller?.writeTo(uuidStr, data: data, resp: true)
@@ -67,12 +69,19 @@ open class PeriObj :NSObject{
     public func writeToNoResp(_ uuidStr:String, data:Data){
         controller?.writeTo(uuidStr, data: data, resp: false)
     }
+
+    public func readFrom(_ uuidStr:String){
+        controller?.readFrom(uuidStr)
+    }
+
+    public func subscribe(_ uuidStr:String){
+        controller?.subscribeTo(uuidStr)
+    }
 }
 
 extension PeriObj :ControllerDelegate{
     func didDiscoverServices() {
-        print("didDiscover services ")
-        print("\(controller?.charaDict.keys) ")
+        print("[discover] \(name)")
         setUp()
     }
 
@@ -81,7 +90,7 @@ extension PeriObj :ControllerDelegate{
         delegate?.onRSSIChanged(rssi: rssi, periObj: self)
     }
 
-    func onUpdated(uuidStr: String, value: Data, kind: UpdateKind) {
+    func onUpdated(_ uuidStr: String, value: Data, kind: UpdateKind) {
         getUpdated(uuidStr, value, kind)
     }
 }
