@@ -197,7 +197,7 @@ extension CentralManager : CBCentralManagerDelegate{
     private func doScan(){
 //        let services = serviceUUIDs.map{ (uuid)-> CBUUID in return CBUUID.init(string: uuid)}
         let services = [CBUUID(string: "00001802-0000-1000-8000-00805F9B34FB")];
-        print("scan with \(services)")
+        print("scan with 1111 \(services)")
         self.centralMgr?.scanForPeripherals(withServices: services, options: [CBCentralManagerScanOptionAllowDuplicatesKey : true])
     }
 
