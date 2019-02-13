@@ -36,8 +36,7 @@ public class CentralManager: NSObject{
 
     private override init(){
         super.init()
-        centralMgr = CBCentralManager(delegate: self,
-        queue: DispatchQueue.global(qos: .background), options: [CBCentralManagerOptionShowPowerAlertKey:true])
+        centralMgr = CBCentralManager(delegate: self, queue: DispatchQueue.global(qos: .background), options: [CBCentralManagerOptionShowPowerAlertKey:true])
     }
 
     deinit {
@@ -85,8 +84,7 @@ extension CentralManager : CBCentralManagerDelegate{
      *  on Scanned results
      *
      **/
-    private func centralManager(_ central: CBCentralManager, didDiscover peripheral: CBPeripheral,
-                        advertisementData: [String: Any], rssi RSSI: NSNumber) {
+    public func centralManager(_ central: CBCentralManager, didDiscover peripheral: CBPeripheral, advertisementData: [String: Any], rssi RSSI: NSNumber) {
         print("Scan name is \(peripheral.name ?? "")")
         if !isValidName(name: peripheral.name) { return }
         let rssi = RSSI.intValue
@@ -127,7 +125,7 @@ extension CentralManager : CBCentralManagerDelegate{
     }
 
     //did connect callback
-    private func centralManager(_ central: CBCentralManager, didConnect peripheral: CBPeripheral) {
+    public func centralManager(_ central: CBCentralManager, didConnect peripheral: CBPeripheral) {
         print("[CONNECTED] \(peripheral.name ?? "") is connected")
         let uuid = peripheral.identifier.uuidString
         let periObj = peris.first{ $0.uuid == uuid }
@@ -142,7 +140,7 @@ extension CentralManager : CBCentralManagerDelegate{
     }
 
     //did disconnect callback
-    private func centralManager(_ central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: Error?) {
+    public func centralManager(_ central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: Error?) {
         print("[DISCONNECTED] \(peripheral.name ?? "") is dropped uuid is \( peripheral.identifier.uuidString )")
         let uuid = peripheral.identifier.uuidString
         let periObj = peris.first{ $0.uuid == uuid }
@@ -156,7 +154,7 @@ extension CentralManager : CBCentralManagerDelegate{
         }
     }
 
-    private func centralManager(_ central: CBCentralManager, didFailToConnect peripheral: CBPeripheral, error: Error?) {
+    public func centralManager(_ central: CBCentralManager, didFailToConnect peripheral: CBPeripheral, error: Error?) {
         print("[FAIL DISCONNECTED] \(peripheral.name ?? "") is dropped uuid is \( peripheral.identifier.uuidString )")
         let uuid = peripheral.identifier.uuidString
         let periObj = peris.first{ $0.uuid == uuid }
@@ -196,10 +194,10 @@ extension CentralManager : CBCentralManagerDelegate{
 
     private func doScan(){
         let services = serviceUUIDs.map{ (uuid)-> CBUUID in return CBUUID.init(string: uuid)}
-//        let services = [CBUUID(string: "00001802-0000-1000-8000-00805F9B34FB")];
-        print("scan with 24 \(services)")
+        print("scan with 27 \(services)")
         DispatchQueue.main.async {
-            self.centralMgr?.scanForPeripherals(withServices: services, options: [CBCentralManagerScanOptionAllowDuplicatesKey : true])
+            self.centralMgr.scanForPeripherals(withServices: services, options: [CBCentralManagerScanOptionAllowDuplicatesKey : true])
+            print("is scanning \(self.centralMgr.isScanning)")
         }
     }
 
