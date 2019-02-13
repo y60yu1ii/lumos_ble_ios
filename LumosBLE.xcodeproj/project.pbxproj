@@ -14,6 +14,7 @@
 		6D39F4EF22117145001F1945 /* GattController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D39F4EB22117145001F1945 /* GattController.swift */; };
 		6D6E33F9A7D1E8E52F6E1128 /* DataManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D6E3086BA9C033FB235F9A4 /* DataManager.swift */; };
 		6D6E3C02F78A1060F2A3E144 /* Utils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D6E3025B55A30A535DB204C /* Utils.swift */; };
+		6DC2A2312213F19400458DD8 /* CoreBluetooth.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6DC2A2302213F19300458DD8 /* CoreBluetooth.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -26,6 +27,7 @@
 		6D39F4EB22117145001F1945 /* GattController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GattController.swift; sourceTree = "<group>"; };
 		6D6E3025B55A30A535DB204C /* Utils.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Utils.swift; sourceTree = "<group>"; };
 		6D6E3086BA9C033FB235F9A4 /* DataManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DataManager.swift; sourceTree = "<group>"; };
+		6DC2A2302213F19300458DD8 /* CoreBluetooth.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreBluetooth.framework; path = System/Library/Frameworks/CoreBluetooth.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -33,6 +35,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				6DC2A2312213F19400458DD8 /* CoreBluetooth.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -44,6 +47,7 @@
 			children = (
 				6D39F4BA22116AEA001F1945 /* LumosBLE */,
 				6D39F4B922116AEA001F1945 /* Products */,
+				6DC2A22F2213F19300458DD8 /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -68,6 +72,14 @@
 				6D6E3086BA9C033FB235F9A4 /* DataManager.swift */,
 			);
 			path = LumosBLE;
+			sourceTree = "<group>";
+		};
+		6DC2A22F2213F19300458DD8 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				6DC2A2302213F19300458DD8 /* CoreBluetooth.framework */,
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */

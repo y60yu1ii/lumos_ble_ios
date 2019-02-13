@@ -51,7 +51,6 @@ extension CentralManager{
     @objc public func startAPP(){
         //prevent from doing nothing when initiated
         print("Open central manager \u{24}")
-        centralMgr.delegate = self
     }
 
     @objc public func connect(_ mac:String){
@@ -196,7 +195,8 @@ extension CentralManager : CBCentralManagerDelegate{
     }
 
     private func doScan(){
-        let services = serviceUUIDs.map{(uuid)-> CBUUID in return CBUUID.init(string: uuid)}
+//        let services = serviceUUIDs.map{ (uuid)-> CBUUID in return CBUUID.init(string: uuid)}
+        let services = [CBUUID(string: "00001802-0000-1000-8000-00805F9B34FB")];
         print("scan with \(services)")
         self.centralMgr?.scanForPeripherals(withServices: services, options: [CBCentralManagerScanOptionAllowDuplicatesKey : true])
     }
