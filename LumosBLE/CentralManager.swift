@@ -197,8 +197,10 @@ extension CentralManager : CBCentralManagerDelegate{
     private func doScan(){
         let services = serviceUUIDs.map{ (uuid)-> CBUUID in return CBUUID.init(string: uuid)}
 //        let services = [CBUUID(string: "00001802-0000-1000-8000-00805F9B34FB")];
-        print("scan with 22 \(services)")
-        self.centralMgr?.scanForPeripherals(withServices: services, options: [CBCentralManagerScanOptionAllowDuplicatesKey : true])
+        print("scan with 23 \(services)")
+        DispatchQueue.main.async {
+            self.centralMgr?.scanForPeripherals(withServices: services, options: [CBCentralManagerScanOptionAllowDuplicatesKey : true])
+        }
     }
 
     private func bluetoothIsOff(){
