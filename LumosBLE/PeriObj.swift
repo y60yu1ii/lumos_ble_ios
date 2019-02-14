@@ -58,7 +58,8 @@ open class PeriObj :NSObject{
         controller?.cbPeripheral.readRSSI()
     }
 
-    open func disconnect(completion:@escaping (_:Bool)->()){}
+    open func connectionDropped(_ completion:@escaping (_:Bool)->()){}
+    open func disconnect(_ completion:@escaping (_:Bool)->()){}
     open func getUpdated(_ uuidStr: String, _ value: Data, _ kind: UpdateKind) {
         print("[getUpdate] \(name) \(uuidStr) and value is \(value)")
     }
@@ -81,7 +82,6 @@ open class PeriObj :NSObject{
 
 extension PeriObj :ControllerDelegate{
     func didDiscoverServices() {
-        print("[discover] \(name)")
         setUp()
     }
 

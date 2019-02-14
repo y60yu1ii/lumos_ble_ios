@@ -97,7 +97,8 @@ extension CentralManager : CBCentralManagerDelegate{
         let data = advertisementData["kCBAdvDataManufacturerData"] as? Data ?? Data()
         let uuid = peripheral.identifier.uuidString
         let peri = periMap[uuid]
-        if(peri != nil && !(peri?.markDelete == true)){
+        if(peri != nil){
+            print("[FOUND LOST] \(peri!.name) is my lost device, reconnect")
             connect(makeAvail(peripheral, rawData: data))
             return
         }
@@ -148,29 +149,32 @@ extension CentralManager : CBCentralManagerDelegate{
     public func centralManager(_ central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: Error?) {
         print("[DISCONNECTED] \(peripheral.name ?? "") is dropped uuid is \( peripheral.identifier.uuidString )")
         let periObj = peris.first{ $0.uuid == peripheral.identifier.uuidString }
-        if(periObj != nil){ didDisconnect(periObj!) }
+        if(periObj != nil){ didDisConnect(periObj!) }
     }
 
     public func centralManager(_ central: CBCentralManager, didFailToConnect peripheral: CBPeripheral, error: Error?) {
         print("[FAIL DISCONNECTED] \(peripheral.name ?? "") is dropped uuid is \( peripheral.identifier.uuidString )")
         let periObj = peris.first{ $0.uuid == peripheral.identifier.uuidString }
-        if(periObj != nil){ didDisconnect(periObj!) }
+        if(periObj != nil){ didDisConnect(periObj!) }
    }
 
-    private func didDisconnect(_ periObj:PeriObj){
+    private func didDisConnect(_ periObj:PeriObj){
+        print("[CentralManager] DidDisConnect \(periObj.name)")
         periObj.cbPeripheral?.delegate = nil
-        if (periObj.markDelete == true || periObj.isAuthSuccess != true) {
-            periMap.removeValue(forKey: periObj.uuid)
+        periObj.connectionDropped(){ (completed) in
+            if (periObj.markDelete == true || periObj.isAuthSuccess != true) {
+                self.periMap.removeValue(forKey: periObj.uuid)
+            }
         }
         NotificationCenter.default.post(name: Notification.Name(CONNECTION),
                     object: nil, userInfo: ["key" : periObj.key, "connected": false])
     }
 
     private func connect(_ avl:AvailObj){
-        let periObj:PeriObj = periMap[avl.key] ?? setting?.getCustomObj(avl.key, avl.name) ?? PeriObj(avl.key)
+        let periObj:PeriObj = periMap[avl.uuid] ?? setting?.getCustomObj(avl.uuid, avl.name) ?? PeriObj(avl.uuid)
         if(!periObj.connectingLock ){
             periObj.setAvl(avl)
-            periMap[periObj.key] = periObj
+            periMap[periObj.uuid] = periObj
             DispatchQueue.main.async{
                 if(periObj.cbPeripheral != nil){
                     print("[CentralManager] Connecting to \(periObj.cbPeripheral?.name)")
@@ -187,25 +191,25 @@ extension CentralManager : CBCentralManagerDelegate{
     private func disconnect(_ periObj :PeriObj, isRemove:Bool){
         print("Disconnecting")
         periObj.markDelete = isRemove
-        periObj.disconnect(){ completed in
-            if(completed && periObj.cbPeripheral != nil){ self.centralMgr.cancelPeripheralConnection(periObj.cbPeripheral!)}
+        periObj.disconnect(){ (completed) in
+            if(completed && periObj.cbPeripheral != nil)
+            {
+                self.centralMgr.cancelPeripheralConnection(periObj.cbPeripheral!)
+            }
         }
         if(isRemove){ removeFromHistory(periObj.uuid) }
     }
 
     private func doScan(){
         let services = serviceUUIDs.map{ (uuid)-> CBUUID in return CBUUID.init(string: uuid)}
-        print("scan with 27 \(services)")
+        print("scan for \(services)")
         DispatchQueue.main.async {
             self.centralMgr.scanForPeripherals(withServices: services, options: [CBCentralManagerScanOptionAllowDuplicatesKey : true])
-            print("is scanning \(self.centralMgr.isScanning)")
         }
     }
 
     private func bluetoothIsOff(){
-        peris.forEach{
-            if($0.cbPeripheral != nil){ self.centralMgr.cancelPeripheralConnection($0.cbPeripheral!) }
-        }
+        peris.forEach{ $0.connectionDropped(){(completed)in} }
         avails.removeAll()
     }
 
