@@ -52,7 +52,7 @@ class GattController:NSObject, CBPeripheralDelegate{
     func peripheral(_ peripheral: CBPeripheral, didDiscoverCharacteristicsFor service: CBService, error: Error?) {
         service.characteristics?.forEach{ charaDict[$0.uuid.uuidString] = $0 }
         now += 1
-        print("\(now) / \(len) ")
+//        print("\(now) / \(len) ")
         if(now >= len ){ delegate?.didDiscoverServices() }
     }
 

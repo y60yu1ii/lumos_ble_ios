@@ -17,13 +17,7 @@ open class PeriObj :NSObject{
     public var isAuthSuccess : Bool = false{ didSet { dealWithAuthState(isAuthSuccess) } }
     open func dealWithAuthState(_ isSuccess:Bool){}
     var controller: GattController? = nil
-    public var rssi:Int = 0{
-        didSet{
-            if(rssi<0){
-                delegate?.onRSSIChanged(rssi: rssi, periObj: self)
-            }
-        }
-    }
+    public var rssi:Int = 0
 
     public init(_ uuid :String){
         self.uuid = uuid
@@ -60,9 +54,8 @@ open class PeriObj :NSObject{
 
     open func connectionDropped(_ completion:@escaping (_:Bool)->()){}
     open func disconnect(_ completion:@escaping (_:Bool)->()){}
-    open func getUpdated(_ uuidStr: String, _ value: Data, _ kind: UpdateKind) {
-        print("[getUpdate] \(name) \(uuidStr) and value is \(value)")
-    }
+    open func onRSSIChange(_ rssi:Int){}
+    open func onUpdate(_ uuidStr: String, _ value: Data, _ kind: UpdateKind) {}
 
     public func writeTo(_ uuidStr:String, data:Data){
         controller?.writeTo(uuidStr, data: data, resp: true)
@@ -87,11 +80,11 @@ extension PeriObj :ControllerDelegate{
 
     func onRSSIUpdated(rssi: Int) {
         self.rssi = rssi
-        delegate?.onRSSIChanged(rssi: rssi, periObj: self)
+        onRSSIChange(rssi)
     }
 
     func onUpdated(_ uuidStr: String, value: Data, kind: UpdateKind) {
-        getUpdated(uuidStr, value, kind)
+        onUpdate(uuidStr, value, kind)
     }
 }
 

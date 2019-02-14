@@ -177,7 +177,6 @@ extension CentralManager : CBCentralManagerDelegate{
             periMap[periObj.uuid] = periObj
             DispatchQueue.main.async{
                 if(periObj.cbPeripheral != nil){
-                    print("[CentralManager] Connecting to \(periObj.cbPeripheral?.name)")
                     self.centralMgr.connect(periObj.cbPeripheral!, options: [CBConnectPeripheralOptionNotifyOnConnectionKey: true])
                 }
             }
