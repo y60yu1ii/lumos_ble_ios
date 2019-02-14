@@ -8,6 +8,7 @@ import CoreBluetooth
 
 public protocol EventListener {
     func didDiscover(_ availObj:AvailObj)
+    func didConnectionChange(_ key:String, isConnected:Bool)
 }
 
 public protocol Setting{
@@ -29,19 +30,22 @@ public class CentralManager: NSObject{
 
     let CONNECT_FILTER:Int = -75
     let REGX_ALL = ".*?"
+    let RECONNECT_TIMES = 1
 
     public var serviceUUIDs = [String]()
     public var setting : Setting? = nil
     public var event : EventListener? = nil
-    var avails = [AvailObj]()
+    public var avails = [AvailObj]()
     var periMap = [String:PeriObj]()
-    var peris : [PeriObj] { get{ return periMap.map{$0.1} } }
+    public var peris : [PeriObj] { get{ return periMap.map{$0.1} } }
 
     var centralMgr: CBCentralManager!
 
     private override init(){
         super.init()
-        centralMgr = CBCentralManager(delegate: self, queue: DispatchQueue.global(qos: .background), options: [CBCentralManagerOptionShowPowerAlertKey:true])
+        centralMgr = CBCentralManager(delegate: self,
+                queue: DispatchQueue.global(qos: .background),
+                options: [CBCentralManagerOptionShowPowerAlertKey:true])
     }
 
     deinit {
@@ -91,15 +95,18 @@ extension CentralManager : CBCentralManagerDelegate{
      **/
     public func centralManager(_ central: CBCentralManager, didDiscover peripheral: CBPeripheral, advertisementData: [String: Any], rssi RSSI: NSNumber) {
 //        print("Scan name is \(peripheral.name ?? "")")
-        if !isValidName(name: peripheral.name) { return }
         let rssi = RSSI.intValue
         guard rssi != 127 else { return }
+        guard peripheral.name != nil else { return }
+        if !isValidName(name: peripheral.name) { return }
         let data = advertisementData["kCBAdvDataManufacturerData"] as? Data ?? Data()
         let uuid = peripheral.identifier.uuidString
-        let peri = periMap[uuid]
-        if(peri != nil){
-            print("[FOUND LOST] \(peri!.name) is my lost device, reconnect")
-            connect(makeAvail(peripheral, rawData: data))
+        let periObj = periMap[uuid]
+        if(periObj != nil){
+            if(!periObj!.blocked){
+                print("[FOUND LOST] \(periObj!.name) is my lost device, reconnect")
+                connect(makeAvail(peripheral, rawData: data))
+            }
             return
         }
 
@@ -112,7 +119,10 @@ extension CentralManager : CBCentralManagerDelegate{
             let a = makeAvail(peripheral, rawData: data)
             avails.append(a)
             event?.didDiscover(a)
-            print("[ADD to AVAIL] \(a.name) key is \(a.key) count is \(avails.count) ")
+            print("[ADD to AVAIL] \(a.name) key is \(a.key) " +
+                    "count is \(avails.count) " +
+                    "peris count is \(peris.count)"
+            )
         }
     }
 
@@ -132,52 +142,56 @@ extension CentralManager : CBCentralManagerDelegate{
 
     //did connect callback
     public func centralManager(_ central: CBCentralManager, didConnect peripheral: CBPeripheral) {
-        print("[CONNECTED] \(peripheral.name ?? "") is connected")
+//        print("[CONNECTED] \(peripheral.name ?? "") is connected")
         let uuid = peripheral.identifier.uuidString
         let periObj = peris.first{ $0.uuid == uuid }
         if(periObj != nil){
             print("[CONNECTED] \(periObj!.name) with \(periObj!.uuid) key is \(periObj!.key)")
             DispatchQueue.main.async {
-                periObj!.connect(peri: peripheral)
+                periObj!.postConnect(peri: peripheral)
             }
             NotificationCenter.default.post(name: Notification.Name(CONNECTION),
                     object: nil, userInfo: ["key" : periObj!.key, "connected": true])
+            event?.didConnectionChange(periObj!.key, isConnected: true)
         }
     }
 
     //did disconnect callback
     public func centralManager(_ central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: Error?) {
-        print("[DISCONNECTED] \(peripheral.name ?? "") is dropped uuid is \( peripheral.identifier.uuidString )")
+        print("[DISCONNECTED] \(peripheral.name ?? "") is dropped")
         let periObj = peris.first{ $0.uuid == peripheral.identifier.uuidString }
         if(periObj != nil){ didDisConnect(periObj!) }
     }
 
     public func centralManager(_ central: CBCentralManager, didFailToConnect peripheral: CBPeripheral, error: Error?) {
-        print("[FAIL DISCONNECTED] \(peripheral.name ?? "") is dropped uuid is \( peripheral.identifier.uuidString )")
+        print("[FAIL DISCONNECTED] \(peripheral.name ?? "") is dropped")
         let periObj = peris.first{ $0.uuid == peripheral.identifier.uuidString }
         if(periObj != nil){ didDisConnect(periObj!) }
    }
 
     private func didDisConnect(_ periObj:PeriObj){
-        print("[CentralManager] DidDisConnect \(periObj.name)")
-        periObj.cbPeripheral?.delegate = nil
+        periObj.clear()
         periObj.connectionDropped(){ (completed) in
-            if (periObj.markDelete == true || periObj.isAuthSuccess != true) {
+            print("[CentralManager] blocked \(periObj.blocked) and markDelete is \(periObj.markDelete)")
+            if(periObj.markDelete){
                 self.periMap.removeValue(forKey: periObj.uuid)
+                removeFromHistory(periObj.uuid)
             }
         }
         NotificationCenter.default.post(name: Notification.Name(CONNECTION),
                     object: nil, userInfo: ["key" : periObj.key, "connected": false])
+        event?.didConnectionChange(periObj.key, isConnected: false)
     }
 
     private func connect(_ avl:AvailObj){
         let periObj:PeriObj = periMap[avl.uuid] ?? setting?.getCustomObj(avl.uuid, avl.name) ?? PeriObj(avl.uuid)
-        if(!periObj.connectingLock ){
-            periObj.setAvl(avl)
+        if(!periObj.blocked){
+            periObj.preConnect(avl)
             periMap[periObj.uuid] = periObj
             DispatchQueue.main.async{
                 if(periObj.cbPeripheral != nil){
-                    self.centralMgr.connect(periObj.cbPeripheral!, options: [CBConnectPeripheralOptionNotifyOnConnectionKey: true])
+                    self.centralMgr.connect(periObj.cbPeripheral!,
+                            options: [CBConnectPeripheralOptionNotifyOnConnectionKey: true])
                 }
             }
             avl.delegate = nil

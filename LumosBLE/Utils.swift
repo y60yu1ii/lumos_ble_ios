@@ -4,9 +4,8 @@
 //
 
 import Foundation
-let REFRESH_ALL = "de.fishare.refresh"
-let CONNECTION  = "de.fishare.connection"
-let BLUETOOTH_STATE = "de.fishare.bluetooth.state"
+public let REFRESH_ALL = "de.fishare.refresh"
+public let CONNECTION  = "de.fishare.connection"
 
 func matches(for regex: String, in text: String) -> [String] {
     do {

@@ -10,12 +10,10 @@ open class PeriObj :NSObject{
     public var key:String  = "key"
     public var name:String = "name"
     public var uuid:String = "uuid"
-    public var connectingLock = false
-    public var isConnected = false
     public var markDelete = false
+    public var blocked = false
+    public var connectingLock = false
     public var delegate: PeriObjDelegate? = nil
-    public var isAuthSuccess : Bool = false{ didSet { dealWithAuthState(isAuthSuccess) } }
-    open func dealWithAuthState(_ isSuccess:Bool){}
     var controller: GattController? = nil
     public var rssi:Int = 0
 
@@ -28,7 +26,7 @@ open class PeriObj :NSObject{
         controller = nil
     }
 
-    func setAvl(_ avl:AvailObj){
+    func preConnect(_ avl:AvailObj){
         self.cbPeripheral = avl.cbPeripheral
         self.key  = avl.key
         self.rssi = avl.rssi
@@ -36,7 +34,7 @@ open class PeriObj :NSObject{
         self.name = avl.name
     }
 
-    func connect(peri:CBPeripheral){
+    func postConnect(peri:CBPeripheral){
         connectingLock = true
         self.cbPeripheral = peri
         name = cbPeripheral?.name ?? name
@@ -47,8 +45,12 @@ open class PeriObj :NSObject{
         }
     }
 
+    func clear(){
+        cbPeripheral?.delegate = nil
+        controller?.delegate = nil
+    }
+
     open func setUp(){
-        connectingLock = false
         controller?.cbPeripheral.readRSSI()
     }
 
@@ -56,6 +58,7 @@ open class PeriObj :NSObject{
     open func disconnect(_ completion:@escaping (_:Bool)->()){}
     open func onRSSIChange(_ rssi:Int){}
     open func onUpdate(_ uuidStr: String, _ value: Data, _ kind: UpdateKind) {}
+    open func onAuthChange(){}
 
     public func writeTo(_ uuidStr:String, data:Data){
         controller?.writeTo(uuidStr, data: data, resp: true)
