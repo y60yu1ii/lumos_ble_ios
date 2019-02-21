@@ -135,7 +135,6 @@ extension CentralManager : CBCentralManagerDelegate{
     func makeAvail(_ peri:CBPeripheral, rawData:Data) -> AvailObj{
         let avl:AvailObj = setting?.getCustomAvl(peri) ?? AvailObj(peri)
         avl.rawData = rawData
-        avl.uuid = peri.identifier.uuidString
         avl.setUp()
         return avl
     }

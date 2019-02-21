@@ -4,6 +4,10 @@
 
 import Foundation
 import CoreBluetooth
+public protocol PeriObjDelegate{
+    func onRSSIChanged(rssi: Int, periObj:PeriObj)
+    func onUpdated(label: String, value:Any, periObj:PeriObj)
+}
 
 open class PeriObj :NSObject{
     public var cbPeripheral:CBPeripheral? = nil
@@ -58,7 +62,6 @@ open class PeriObj :NSObject{
     open func disconnect(_ completion:@escaping (_:Bool)->()){}
     open func onRSSIChange(_ rssi:Int){}
     open func onUpdate(_ uuidStr: String, _ value: Data, _ kind: UpdateKind) {}
-    open func onAuthChange(){}
 
     public func writeTo(_ uuidStr:String, data:Data){
         controller?.writeTo(uuidStr, data: data, resp: true)
@@ -91,7 +94,3 @@ extension PeriObj :ControllerDelegate{
     }
 }
 
-public protocol PeriObjDelegate{
-    func onRSSIChanged(rssi: Int, periObj:PeriObj)
-    func onUpdated(label: String, value:Any, periObj:PeriObj)
-}
