@@ -12,9 +12,9 @@ Pod::Spec.new do |s|
           #6
           s.author          = "yaoyu"
           #7.
-          s.platform        = :ios, "8.0"
+          s.platform        = :ios, "9.0"
           #8
-          s.source          = { :git => "URL", :tag => "0.0.3" }
+          s.source          = { :git => "https://github.com/y60yu1ii/lumos_ble_ios.git", :tag => "0.0.3" }
           #9.
           s.source_files    = "LumosBLE", "LumosBLE/**/*.{h,m,swift}"
           #10.
